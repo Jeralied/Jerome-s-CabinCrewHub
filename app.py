@@ -11,7 +11,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="CabinCrewHub",
-    page_icon="✈️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -391,8 +391,8 @@ st.sidebar.markdown(
 page = st.sidebar.radio(
     "Navigate",
     [
-        "🔎 Airline Checker",
-        "🎤 Interview Trainer",
+        " Airline Checker",
+        " Interview Trainer",
     ],
 )
 
@@ -410,7 +410,7 @@ st.sidebar.caption(
 st.markdown(
     """
     <div class="hero">
-        <h1>✈️ CabinCrewHub</h1>
+        <h1> CabinCrewHub</h1>
         <p>
             Your cabin crew preparation and airline application companion.
         </p>
@@ -424,12 +424,12 @@ st.markdown(
 # AIRLINE CHECKER
 # ============================================================
 
-if page == "🔎 Airline Checker":
+if page == " Airline Checker":
 
     st.markdown(
         """
         <div class="card">
-            <h2>🔎 Airline Application Checker</h2>
+            <h2> Airline Application Checker</h2>
             <p>
                 Enter your information to compare your profile with
                 the requirements currently stored for the selected airline.
@@ -455,7 +455,7 @@ if page == "🔎 Airline Checker":
     st.markdown(
         f"""
         <div class="card">
-            <h2>✈️ {safe(airline)}</h2>
+            <h2> {safe(airline)}</h2>
             <p>{safe(get_airline_description(airline))}</p>
         </div>
         """,
@@ -466,7 +466,7 @@ if page == "🔎 Airline Checker":
     # PERSONAL INFORMATION
     # --------------------------------------------------------
 
-    st.subheader("👤 Your Profile")
+    st.subheader(" Your Profile")
 
     col1, col2 = st.columns(2)
 
@@ -548,7 +548,7 @@ if page == "🔎 Airline Checker":
     st.markdown("")
 
     check = st.button(
-        "🔍 Check My Profile",
+        " Check My Profile",
         type="primary",
         use_container_width=True,
     )
@@ -859,12 +859,12 @@ if page == "🔎 Airline Checker":
 # INTERVIEW TRAINER
 # ============================================================
 
-elif page == "🎤 Interview Trainer":
+elif page == " Interview Trainer":
 
     st.markdown(
         """
         <div class="card">
-            <h2>🎤 Cabin Crew Interview Trainer</h2>
+            <h2> Cabin Crew Interview Trainer</h2>
             <p>
                 Practice common cabin crew interview questions and
                 improve your answers before your assessment.
@@ -1045,7 +1045,7 @@ elif page == "🎤 Interview Trainer":
         with col1:
 
             if st.button(
-                "💡 Show Answer Tips",
+                " Show Answer Tips",
                 use_container_width=True,
             ):
 
@@ -1072,7 +1072,7 @@ elif page == "🎤 Interview Trainer":
         with col2:
 
             if st.button(
-                "📝 Check My Answer",
+                " Check My Answer",
                 use_container_width=True,
             ):
 
@@ -1155,7 +1155,7 @@ elif page == "🎤 Interview Trainer":
         st.markdown(
             """
             <div class="card">
-                <h3>⭐ STAR Method</h3>
+                <h3> STAR Method</h3>
 
                 <p>
                     <strong>S — Situation:</strong>
@@ -1194,9 +1194,9 @@ st.markdown(
         color:#737c8c;
         font-size:13px;
     ">
-        ✈️ CabinCrewHub
+         CabinCrewHub
         <br>
-        Cabin crew preparation made simpler.
+        Jerome just made Cabin crew preparation simpler.
     </div>
     """,
     unsafe_allow_html=True,
