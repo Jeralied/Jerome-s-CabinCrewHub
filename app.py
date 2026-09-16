@@ -1,6 +1,9 @@
-import streamlit as st
 import json
+import html
 from pathlib import Path
+
+import streamlit as st
+
 
 # ============================================================
 # PAGE CONFIG
@@ -9,136 +12,413 @@ from pathlib import Path
 st.set_page_config(
     page_title="CabinCrewHub",
     page_icon="✈️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# CUSTOM CSS
-# ============================================================
-
-st.markdown("""
-<style>
-
-.main {
-    background-color: #f7f9fc;
-}
-
-.hero {
-    padding: 40px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, #081b33, #174b78);
-    color: white;
-    margin-bottom: 30px;
-}
-
-.hero h1 {
-    font-size: 44px;
-    margin-bottom: 8px;
-}
-
-.hero p {
-    font-size: 18px;
-    opacity: 0.9;
-}
-
-.card {
-    padding: 25px;
-    border-radius: 16px;
-    background: white;
-    border: 1px solid #e5e9f0;
-    margin-bottom: 20px;
-}
-
-.result-box {
-    padding: 18px;
-    border-radius: 12px;
-    margin: 10px 0;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-}
-
-.check {
-    font-size: 19px;
-    font-weight: 600;
-}
-
-.small-text {
-    color: #64748b;
-    font-size: 14px;
-}
-
-div.stButton > button {
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-</style>
-""", unsafe_allow_html=True)
 
 # ============================================================
-# LOAD AIRLINE DATA
+# FILE PATHS
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
-AIRLINE_FILE = BASE_DIR / "airlines.json"
+AIRLINES_FILE = BASE_DIR / "airlines.json"
+QUESTIONS_FILE = BASE_DIR / "questions.json"
 
 
-def load_airlines():
+# ============================================================
+# LOAD JSON SAFELY
+# ============================================================
 
+def load_json(path, default):
+    """Load a JSON file safely."""
     try:
+        if not path.exists():
+            return default
 
-        with open(AIRLINE_FILE, "r", encoding="utf-8") as file:
+        with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    except FileNotFoundError:
-
-        st.error(
-            "airlines.json was not found. "
-            "Make sure the file is in the same GitHub repository."
-        )
-
-        return {}
-
-    except json.JSONDecodeError:
-
-        st.error(
-            "airlines.json contains invalid JSON."
-        )
-
-        return {}
+    except (json.JSONDecodeError, OSError):
+        return default
 
 
-airlines = load_airlines()
+airlines_data = load_json(AIRLINES_FILE, {})
+questions_data = load_json(QUESTIONS_FILE, [])
+
 
 # ============================================================
-# HERO
+# NORMALIZE AIRLINE DATA
 # ============================================================
 
-st.markdown("""
-<div class="hero">
+def get_airlines(data):
+    """
+    Supports either:
+        {"Emirates": {...}, "Qatar Airways": {...}}
+    or:
+        [{"name": "Emirates", ...}, ...]
+    """
 
-    <h1>✈️ CabinCrewHub</h1>
+    if isinstance(data, dict):
+        return data
 
-    <p>
-        Your cabin crew preparation and airline application companion.
-    </p>
+    if isinstance(data, list):
+        result = {}
 
-</div>
-""", unsafe_allow_html=True)
+        for airline in data:
+            if isinstance(airline, dict):
+                name = airline.get("name") or airline.get("airline")
+
+                if name:
+                    result[name] = airline
+
+        return result
+
+    return {}
+
+
+airlines = get_airlines(airlines_data)
+
+
+# ============================================================
+# DEFAULT AIRLINES
+# ============================================================
+
+if not airlines:
+    airlines = {
+        "Emirates": {
+            "description": "Cabin Crew recruitment requirements for Emirates.",
+            "requirements": {
+                "age": 21,
+                "height": 160,
+                "reach": 212,
+                "english": True,
+                "education": True,
+                "experience": 1,
+                "swimming": True,
+                "tattoos": False,
+            },
+        },
+
+        "Qatar Airways": {
+            "description": "Cabin Crew recruitment requirements for Qatar Airways.",
+            "requirements": {
+                "age": 21,
+                "height": 160,
+                "reach": 212,
+                "english": True,
+                "education": True,
+                "experience": 1,
+                "swimming": True,
+                "tattoos": False,
+            },
+        },
+
+        "Etihad Airways": {
+            "description": "Cabin Crew recruitment requirements for Etihad Airways.",
+            "requirements": {
+                "age": 21,
+                "height": 163,
+                "reach": 210,
+                "english": True,
+                "education": True,
+                "experience": 1,
+                "swimming": True,
+                "tattoos": False,
+            },
+        },
+    }
+
+
+# ============================================================
+# CSS
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* Main page */
+    .stApp {
+        background: #0e1117;
+    }
+
+    /* Header */
+    .hero {
+        background: linear-gradient(
+            135deg,
+            #0758c9 0%,
+            #087cf0 50%,
+            #00a6ff 100%
+        );
+
+        padding: 35px;
+        border-radius: 22px;
+        margin-bottom: 25px;
+        color: white;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero h1 {
+        margin: 0;
+        font-size: 42px;
+        font-weight: 800;
+    }
+
+    .hero p {
+        margin-top: 10px;
+        font-size: 18px;
+        opacity: 0.95;
+    }
+
+    /* Section cards */
+    .card {
+        background: #171b24;
+        border: 1px solid #292f3b;
+        border-radius: 18px;
+        padding: 25px;
+        margin: 12px 0;
+    }
+
+    .card h2,
+    .card h3 {
+        margin-top: 0;
+    }
+
+    /* Requirement result */
+    .requirement {
+        background: #202631;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 8px 0;
+    }
+
+    .pass {
+        border-left: 5px solid #2ecc71;
+    }
+
+    .fail {
+        border-left: 5px solid #ff5252;
+    }
+
+    .warning {
+        border-left: 5px solid #f5b942;
+    }
+
+    .result-title {
+        font-size: 25px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .score {
+        font-size: 42px;
+        font-weight: 800;
+        margin: 10px 0;
+    }
+
+    .small {
+        color: #aab2bf;
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 700;
+        min-height: 45px;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background: #11151c;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def safe(value):
+    """Safely escape text before putting it inside HTML."""
+    return html.escape(str(value))
+
+
+def find_value(data, *keys, default=None):
+    """Find the first available key in a dictionary."""
+    if not isinstance(data, dict):
+        return default
+
+    for key in keys:
+        if key in data:
+            return data[key]
+
+    return default
+
+
+def get_requirements(airline):
+    """Extract requirement dictionary from airline data."""
+
+    data = airlines.get(airline, {})
+
+    requirements = data.get("requirements", {})
+
+    if isinstance(requirements, dict):
+        return requirements
+
+    return {}
+
+
+def get_airline_description(airline):
+    data = airlines.get(airline, {})
+
+    return find_value(
+        data,
+        "description",
+        "desc",
+        "summary",
+        default=f"Cabin Crew recruitment requirements for {airline}.",
+    )
+
+
+# ============================================================
+# REQUIREMENT NORMALIZATION
+# ============================================================
+
+def requirement_age(req):
+    return find_value(
+        req,
+        "age",
+        "minimum_age",
+        "min_age",
+        default=None,
+    )
+
+
+def requirement_height(req):
+    return find_value(
+        req,
+        "height",
+        "minimum_height",
+        "min_height",
+        default=None,
+    )
+
+
+def requirement_reach(req):
+    return find_value(
+        req,
+        "reach",
+        "arm_reach",
+        "minimum_reach",
+        "min_reach",
+        default=None,
+    )
+
+
+def requirement_experience(req):
+    return find_value(
+        req,
+        "experience",
+        "minimum_experience",
+        "min_experience",
+        default=None,
+    )
+
+
+def requirement_english(req):
+    return find_value(
+        req,
+        "english",
+        "english_required",
+        default=None,
+    )
+
+
+def requirement_education(req):
+    return find_value(
+        req,
+        "education",
+        "education_required",
+        default=None,
+    )
+
+
+def requirement_swimming(req):
+    return find_value(
+        req,
+        "swimming",
+        "swimming_required",
+        default=None,
+    )
+
+
+def requirement_tattoos(req):
+    return find_value(
+        req,
+        "tattoos",
+        "visible_tattoos",
+        "no_tattoos",
+        default=None,
+    )
+
 
 # ============================================================
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("✈️ CabinCrewHub")
+st.sidebar.markdown(
+    """
+    <div style="
+        text-align:center;
+        padding:10px 0 20px 0;
+    ">
+        <div style="font-size:42px;">✈️</div>
+        <h2 style="margin:0;">CabinCrewHub</h2>
+        <p style="color:#9da6b5;">
+            Your cabin crew preparation companion
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 page = st.sidebar.radio(
-    "Choose a tool",
+    "Navigate",
     [
         "🔎 Airline Checker",
-        "🎤 Interview Trainer"
-    ]
+        "🎤 Interview Trainer",
+    ],
 )
+
+st.sidebar.markdown("---")
+
+st.sidebar.caption(
+    "CabinCrewHub helps applicants prepare for airline recruitment."
+)
+
+
+# ============================================================
+# HERO
+# ============================================================
+
+st.markdown(
+    """
+    <div class="hero">
+        <h1>✈️ CabinCrewHub</h1>
+        <p>
+            Your cabin crew preparation and airline application companion.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # ============================================================
 # AIRLINE CHECKER
@@ -146,47 +426,44 @@ page = st.sidebar.radio(
 
 if page == "🔎 Airline Checker":
 
-    st.subheader("🔎 Airline Application Checker")
-
-    st.write(
-        "Enter your information to compare your profile "
-        "with the requirements currently stored for the selected airline."
+    st.markdown(
+        """
+        <div class="card">
+            <h2>🔎 Airline Application Checker</h2>
+            <p>
+                Enter your information to compare your profile with
+                the requirements currently stored for the selected airline.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    if not airlines:
+    airline_names = list(airlines.keys())
 
-        st.warning("No airline information is available.")
-
+    if not airline_names:
+        st.error("No airlines were found in airlines.json.")
         st.stop()
 
-    # --------------------------------------------------------
-    # SELECT AIRLINE
-    # --------------------------------------------------------
-
-    selected_airline = st.selectbox(
+    airline = st.selectbox(
         "Select an airline",
-        list(airlines.keys())
+        airline_names,
     )
 
-    airline = airlines[selected_airline]
+    req = get_requirements(airline)
 
     st.markdown(
         f"""
         <div class="card">
-
-            <h2>✈️ {selected_airline}</h2>
-
-            <p>
-                {airline.get("description", "")}
-            </p>
-
+            <h2>✈️ {safe(airline)}</h2>
+            <p>{safe(get_airline_description(airline))}</p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     # --------------------------------------------------------
-    # USER PROFILE
+    # PERSONAL INFORMATION
     # --------------------------------------------------------
 
     st.subheader("👤 Your Profile")
@@ -199,492 +476,383 @@ if page == "🔎 Airline Checker":
             "Age",
             min_value=16,
             max_value=70,
-            value=19
+            value=19,
+            step=1,
         )
 
         height = st.number_input(
             "Height (cm)",
-            min_value=140,
+            min_value=130,
             max_value=220,
-            value=171
+            value=171,
+            step=1,
         )
 
         reach = st.number_input(
-            "Arm Reach (cm)",
+            "Arm reach (cm)",
             min_value=150,
             max_value=250,
-            value=220
-        )
-
-    with col2:
-
-        english = st.selectbox(
-            "English ability",
-            [
-                "Fluent",
-                "Good",
-                "Basic",
-                "None"
-            ]
-        )
-
-        education = st.selectbox(
-            "Highest education",
-            [
-                "Below secondary school",
-                "Secondary school / Grade 12",
-                "Diploma",
-                "Bachelor's degree",
-                "Master's degree"
-            ]
+            value=220,
+            step=1,
         )
 
         experience = st.number_input(
             "Customer service / hospitality experience (years)",
             min_value=0.0,
-            max_value=30.0,
+            max_value=50.0,
             value=3.0,
-            step=0.5
+            step=0.5,
         )
 
-    swimming = st.selectbox(
-        "Can you swim?",
-        [
-            "Yes",
-            "No",
-            "Not sure"
-        ]
-    )
+    with col2:
 
-    tattoos = st.selectbox(
-        "Visible tattoos while wearing the airline uniform?",
-        [
-            "No",
-            "Yes",
-            "Not sure"
-        ]
-    )
+        english = st.selectbox(
+            "English proficiency",
+            [
+                "Fluent",
+                "Very Fluent",
+                "Intermediate",
+                "Basic",
+                "Not fluent",
+            ],
+        )
 
-    st.divider()
+        education = st.selectbox(
+            "Education requirement",
+            [
+                "Meets requirement",
+                "Does not meet requirement",
+            ],
+        )
+
+        swimming = st.selectbox(
+            "Can you swim?",
+            [
+                "Yes",
+                "No",
+            ],
+        )
+
+        tattoos = st.selectbox(
+            "Visible tattoos",
+            [
+                "No",
+                "Yes",
+            ],
+        )
 
     # --------------------------------------------------------
     # CHECK BUTTON
     # --------------------------------------------------------
 
-    if st.button(
-        "🔍 Check My Requirements",
+    st.markdown("")
+
+    check = st.button(
+        "🔍 Check My Profile",
         type="primary",
-        use_container_width=True
-    ):
+        use_container_width=True,
+    )
+
+    if check:
 
         results = []
 
-        # ====================================================
+        # ----------------------------------------------------
         # AGE
-        # ====================================================
+        # ----------------------------------------------------
 
-        if "min_age" in airline:
+        minimum_age = requirement_age(req)
 
-            if age >= airline["min_age"]:
+        if minimum_age is not None:
 
-                results.append(
-                    (
-                        "✓",
-                        "Age",
-                        f"You meet the minimum age of "
-                        f"{airline['min_age']}.",
-                        "success"
-                    )
-                )
+            try:
+                minimum_age = float(minimum_age)
 
-            else:
+                passed = age >= minimum_age
 
                 results.append(
-                    (
-                        "✗",
-                        "Age",
-                        f"Minimum age: {airline['min_age']}.",
-                        "error"
-                    )
+                    {
+                        "name": "Age",
+                        "passed": passed,
+                        "detail": (
+                            f"Your age: {age} | "
+                            f"Minimum: {minimum_age:g}"
+                        ),
+                    }
                 )
 
-        # ====================================================
+            except (ValueError, TypeError):
+                pass
+
+        # ----------------------------------------------------
         # HEIGHT
-        # ====================================================
+        # ----------------------------------------------------
 
-        if "min_height" in airline:
+        minimum_height = requirement_height(req)
 
-            if airline["min_height"] > 0:
+        if minimum_height is not None:
 
-                if height >= airline["min_height"]:
+            try:
+                minimum_height = float(minimum_height)
 
-                    results.append(
-                        (
-                            "✓",
-                            "Height",
-                            f"You meet the minimum height of "
-                            f"{airline['min_height']} cm.",
-                            "success"
-                        )
-                    )
-
-                else:
-
-                    results.append(
-                        (
-                            "✗",
-                            "Height",
-                            f"Minimum height: "
-                            f"{airline['min_height']} cm.",
-                            "error"
-                        )
-                    )
-
-            else:
+                passed = height >= minimum_height
 
                 results.append(
-                    (
-                        "⚠",
-                        "Height",
-                        "No height requirement stored. "
-                        "Verify the current airline vacancy.",
-                        "warning"
-                    )
+                    {
+                        "name": "Height",
+                        "passed": passed,
+                        "detail": (
+                            f"Your height: {height} cm | "
+                            f"Minimum: {minimum_height:g} cm"
+                        ),
+                    }
                 )
 
-        # ====================================================
-        # ARM REACH
-        # ====================================================
+            except (ValueError, TypeError):
+                pass
 
-        if "min_reach" in airline:
+        # ----------------------------------------------------
+        # REACH
+        # ----------------------------------------------------
 
-            if airline["min_reach"] > 0:
+        minimum_reach = requirement_reach(req)
 
-                if reach >= airline["min_reach"]:
+        if minimum_reach is not None:
 
-                    results.append(
-                        (
-                            "✓",
-                            "Arm Reach",
-                            f"You meet the minimum reach of "
-                            f"{airline['min_reach']} cm.",
-                            "success"
-                        )
-                    )
+            try:
+                minimum_reach = float(minimum_reach)
 
-                else:
-
-                    results.append(
-                        (
-                            "✗",
-                            "Arm Reach",
-                            f"Minimum reach: "
-                            f"{airline['min_reach']} cm.",
-                            "error"
-                        )
-                    )
-
-            else:
+                passed = reach >= minimum_reach
 
                 results.append(
-                    (
-                        "⚠",
-                        "Arm Reach",
-                        "No arm-reach requirement stored. "
-                        "Verify the current airline vacancy.",
-                        "warning"
-                    )
+                    {
+                        "name": "Arm reach",
+                        "passed": passed,
+                        "detail": (
+                            f"Your reach: {reach} cm | "
+                            f"Minimum: {minimum_reach:g} cm"
+                        ),
+                    }
                 )
 
-        # ====================================================
+            except (ValueError, TypeError):
+                pass
+
+        # ----------------------------------------------------
+        # EXPERIENCE
+        # ----------------------------------------------------
+
+        minimum_experience = requirement_experience(req)
+
+        if minimum_experience is not None:
+
+            try:
+                minimum_experience = float(minimum_experience)
+
+                passed = experience >= minimum_experience
+
+                results.append(
+                    {
+                        "name": "Experience",
+                        "passed": passed,
+                        "detail": (
+                            f"Your experience: {experience:g} years | "
+                            f"Minimum: {minimum_experience:g} years"
+                        ),
+                    }
+                )
+
+            except (ValueError, TypeError):
+                pass
+
+        # ----------------------------------------------------
         # ENGLISH
-        # ====================================================
+        # ----------------------------------------------------
 
-        if airline.get("english_required", False):
+        english_required = requirement_english(req)
 
-            if english == "Fluent":
+        if english_required is True:
 
-                results.append(
-                    (
-                        "✓",
-                        "English",
-                        "Fluent English selected.",
-                        "success"
-                    )
-                )
-
-            else:
-
-                results.append(
-                    (
-                        "⚠",
-                        "English",
-                        "The airline requires English proficiency. "
-                        "Verify that your level meets the vacancy requirement.",
-                        "warning"
-                    )
-                )
-
-        # ====================================================
-        # EDUCATION
-        # ====================================================
-
-        if airline.get(
-            "secondary_education_required",
-            False
-        ):
-
-            valid_education = [
-                "Secondary school / Grade 12",
-                "Diploma",
-                "Bachelor's degree",
-                "Master's degree"
+            passed = english in [
+                "Fluent",
+                "Very Fluent",
             ]
 
-            if education in valid_education:
-
-                results.append(
-                    (
-                        "✓",
-                        "Education",
-                        "Secondary education or higher selected.",
-                        "success"
-                    )
-                )
-
-            else:
-
-                results.append(
-                    (
-                        "✗",
-                        "Education",
-                        "Secondary education is required.",
-                        "error"
-                    )
-                )
-
-        # ====================================================
-        # EXPERIENCE
-        # ====================================================
-
-        if airline.get(
-            "experience_required",
-            False
-        ):
-
-            required_experience = airline.get(
-                "minimum_experience_years",
-                1
+            results.append(
+                {
+                    "name": "English",
+                    "passed": passed,
+                    "detail": (
+                        f"Your level: {english} | "
+                        "Fluent English expected"
+                    ),
+                }
             )
 
-            if experience >= required_experience:
+        # ----------------------------------------------------
+        # EDUCATION
+        # ----------------------------------------------------
+
+        education_required = requirement_education(req)
+
+        if education_required is not None:
+
+            if education_required is True:
+
+                passed = education == "Meets requirement"
 
                 results.append(
-                    (
-                        "✓",
-                        "Experience",
-                        f"You entered {experience:g} year(s) "
-                        f"of relevant experience.",
-                        "success"
-                    )
+                    {
+                        "name": "Education",
+                        "passed": passed,
+                        "detail": education,
+                    }
                 )
 
-            else:
+        # ----------------------------------------------------
+        # SWIMMING
+        # ----------------------------------------------------
 
-                results.append(
-                    (
-                        "✗",
-                        "Experience",
-                        f"At least {required_experience} "
-                        f"year(s) required.",
-                        "error"
-                    )
-                )
+        swimming_required = requirement_swimming(req)
 
-        else:
+        if swimming_required is True:
+
+            passed = swimming == "Yes"
 
             results.append(
-                (
-                    "⚠",
-                    "Experience",
-                    "No minimum experience requirement "
-                    "is stored for this airline.",
-                    "warning"
-                )
+                {
+                    "name": "Swimming",
+                    "passed": passed,
+                    "detail": (
+                        "Able to swim"
+                        if passed
+                        else "Swimming requirement not met"
+                    ),
+                }
             )
 
-        # ====================================================
-        # SWIMMING
-        # ====================================================
+        # ----------------------------------------------------
+        # TATTOOS
+        # ----------------------------------------------------
 
-        if airline.get(
-            "swimming_required",
-            False
-        ):
+        tattoo_requirement = requirement_tattoos(req)
 
-            if swimming == "Yes":
+        if tattoo_requirement is not None:
 
-                results.append(
-                    (
-                        "✓",
-                        "Swimming",
-                        "Swimming ability confirmed.",
-                        "success"
-                    )
-                )
+            # Different JSON formats can mean different things.
+            if tattoo_requirement is False:
 
-            elif swimming == "No":
+                passed = tattoos == "No"
 
                 results.append(
-                    (
-                        "✗",
-                        "Swimming",
-                        "Swimming requirement not met.",
-                        "error"
-                    )
+                    {
+                        "name": "Visible tattoos",
+                        "passed": passed,
+                        "detail": (
+                            "No visible tattoos"
+                            if passed
+                            else "Visible tattoos reported"
+                        ),
+                    }
                 )
 
-            else:
+            elif tattoo_requirement is True:
 
+                # In this format True means tattoos are allowed.
                 results.append(
-                    (
-                        "⚠",
-                        "Swimming",
-                        "Verify the airline's swimming requirement.",
-                        "warning"
-                    )
+                    {
+                        "name": "Visible tattoos",
+                        "passed": True,
+                        "detail": "Your airline data allows tattoos.",
+                    }
                 )
 
-        # ====================================================
-        # VISIBLE TATTOOS
-        # ====================================================
+        # ----------------------------------------------------
+        # RESULTS
+        # ----------------------------------------------------
 
-        if airline.get(
-            "no_visible_tattoos",
-            False
-        ):
+        st.markdown("---")
 
-            if tattoos == "No":
+        if results:
 
-                results.append(
-                    (
-                        "✓",
-                        "Visible Tattoos",
-                        "No visible tattoos selected.",
-                        "success"
-                    )
-                )
+            passed_count = sum(
+                1 for result in results
+                if result["passed"]
+            )
 
-            elif tattoos == "Yes":
+            total_count = len(results)
 
-                results.append(
-                    (
-                        "✗",
-                        "Visible Tattoos",
-                        "Visible tattoos may conflict with "
-                        "the airline's stated requirement.",
-                        "error"
-                    )
-                )
-
-            else:
-
-                results.append(
-                    (
-                        "⚠",
-                        "Visible Tattoos",
-                        "Verify the airline's current "
-                        "uniform/tattoo policy.",
-                        "warning"
-                    )
-                )
-
-        # ====================================================
-        # DISPLAY RESULTS
-        # ====================================================
-
-        st.subheader("📋 Requirement Results")
-
-        for icon, requirement, message, status in results:
+            percentage = round(
+                (passed_count / total_count) * 100
+            )
 
             st.markdown(
                 f"""
-                <div class="result-box">
-
-                    <div class="check">
-                        {icon} {requirement}
+                <div class="card">
+                    <div class="result-title">
+                        📊 Application Check
                     </div>
 
-                    <div class="small-text">
-                        {message}
+                    <div class="score">
+                        {percentage}%
                     </div>
 
+                    <p>
+                        You currently meet
+                        <strong>{passed_count}</strong>
+                        of
+                        <strong>{total_count}</strong>
+                        stored requirements for
+                        <strong>{safe(airline)}</strong>.
+                    </p>
                 </div>
                 """,
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
 
-        # ====================================================
-        # SUMMARY
-        # ====================================================
+            # ------------------------------------------------
+            # REQUIREMENT BREAKDOWN
+            # ------------------------------------------------
 
-        passed = sum(
-            1 for result in results
-            if result[3] == "success"
-        )
+            st.subheader("Requirement Breakdown")
 
-        failed = sum(
-            1 for result in results
-            if result[3] == "error"
-        )
+            for result in results:
 
-        warnings = sum(
-            1 for result in results
-            if result[3] == "warning"
-        )
+                if result["passed"]:
 
-        st.divider()
+                    st.markdown(
+                        f"""
+                        <div class="requirement pass">
+                            <strong>✅ {safe(result["name"])}</strong>
+                            <br>
+                            <span class="small">
+                                {safe(result["detail"])}
+                            </span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
-        col1, col2, col3 = st.columns(3)
+                else:
 
-        with col1:
-            st.metric(
-                "✓ Meets",
-                passed
-            )
-
-        with col2:
-            st.metric(
-                "⚠ Verify",
-                warnings
-            )
-
-        with col3:
-            st.metric(
-                "✗ Does Not Meet",
-                failed
-            )
-
-        if failed == 0:
-
-            st.success(
-                "No stored requirement was marked as not met. "
-                "Review all verification warnings and the airline's "
-                "official vacancy before applying."
-            )
+                    st.markdown(
+                        f"""
+                        <div class="requirement fail">
+                            <strong>❌ {safe(result["name"])}</strong>
+                            <br>
+                            <span class="small">
+                                {safe(result["detail"])}
+                            </span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
         else:
 
-            st.error(
-                "At least one stored requirement was not met."
+            st.warning(
+                "No structured requirements were found for this airline."
             )
-
-        st.info(
-            "Important: This is a requirement checklist, not an "
-            "employment or selection prediction. Airline requirements "
-            "can change, so applicants should verify the current "
-            "official vacancy."
-        )
 
 
 # ============================================================
@@ -693,368 +861,343 @@ if page == "🔎 Airline Checker":
 
 elif page == "🎤 Interview Trainer":
 
-    st.subheader("🎤 Cabin Crew Interview Trainer")
-
-    st.write(
-        "Practice realistic cabin crew interview questions and "
-        "receive structured feedback on your answer."
+    st.markdown(
+        """
+        <div class="card">
+            <h2>🎤 Cabin Crew Interview Trainer</h2>
+            <p>
+                Practice common cabin crew interview questions and
+                improve your answers before your assessment.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    # -----------------------------
-    # LOAD QUESTIONS
-    # -----------------------------
+    # --------------------------------------------------------
+    # NORMALIZE QUESTIONS
+    # --------------------------------------------------------
 
-    QUESTION_FILE = BASE_DIR / "questions.json"
+    questions = []
 
-    try:
-        with open(QUESTION_FILE, "r", encoding="utf-8") as file:
-            questions = json.load(file)
-    except FileNotFoundError:
-        st.error("questions.json was not found.")
-        st.stop()
-    except json.JSONDecodeError:
-        st.error("questions.json contains invalid JSON.")
-        st.stop()
+    if isinstance(questions_data, list):
+        questions = questions_data
 
-    # -----------------------------
-    # SESSION STATE
-    # -----------------------------
+    elif isinstance(questions_data, dict):
 
-    if "interview_question" not in st.session_state:
-        st.session_state.interview_question = None
+        possible_questions = (
+            questions_data.get("questions")
+            or questions_data.get("interview_questions")
+            or []
+        )
 
-    if "interview_score" not in st.session_state:
-        st.session_state.interview_score = None
+        if isinstance(possible_questions, list):
+            questions = possible_questions
 
-    if "interview_feedback" not in st.session_state:
-        st.session_state.interview_feedback = None
+    # --------------------------------------------------------
+    # FALLBACK QUESTIONS
+    # --------------------------------------------------------
 
-    if "interview_category" not in st.session_state:
-        st.session_state.interview_category = "All"
+    if not questions:
 
-    # -----------------------------
-    # CATEGORY
-    # -----------------------------
+        questions = [
+            {
+                "question": "Tell me about yourself.",
+                "category": "Introduction",
+            },
+            {
+                "question": "Why do you want to become cabin crew?",
+                "category": "Motivation",
+            },
+            {
+                "question": "Why do you want to work for this airline?",
+                "category": "Motivation",
+            },
+            {
+                "question": "Tell me about a time you dealt with a difficult customer.",
+                "category": "Customer Service",
+            },
+            {
+                "question": "How would you handle an angry passenger?",
+                "category": "Customer Service",
+            },
+            {
+                "question": "How would you handle a conflict with another crew member?",
+                "category": "Teamwork",
+            },
+            {
+                "question": "What does excellent customer service mean to you?",
+                "category": "Customer Service",
+            },
+            {
+                "question": "How would you respond to an emergency on board?",
+                "category": "Safety",
+            },
+            {
+                "question": "What are the most important responsibilities of cabin crew?",
+                "category": "Cabin Crew",
+            },
+            {
+                "question": "Why should we hire you?",
+                "category": "General",
+            },
+        ]
 
-    categories = ["All"] + sorted(
-        list(set(q["category"] for q in questions))
+    # --------------------------------------------------------
+    # QUESTION EXTRACTION
+    # --------------------------------------------------------
+
+    def get_question_text(item):
+
+        if isinstance(item, str):
+            return item
+
+        if isinstance(item, dict):
+
+            return (
+                item.get("question")
+                or item.get("text")
+                or item.get("prompt")
+                or "Interview question"
+            )
+
+        return "Interview question"
+
+    def get_category(item):
+
+        if isinstance(item, dict):
+
+            return (
+                item.get("category")
+                or item.get("type")
+                or "General"
+            )
+
+        return "General"
+
+    categories = sorted(
+        set(get_category(q) for q in questions)
     )
 
     selected_category = st.selectbox(
-        "Choose interview category",
-        categories
+        "Choose a category",
+        ["All"] + categories,
     )
 
-    # -----------------------------
-    # NEW QUESTION
-    # -----------------------------
+    filtered_questions = questions
 
-    if st.session_state.interview_question is None:
+    if selected_category != "All":
 
-        available_questions = questions
+        filtered_questions = [
+            q
+            for q in questions
+            if get_category(q) == selected_category
+        ]
 
-        if selected_category != "All":
-            available_questions = [
-                q for q in questions
-                if q["category"] == selected_category
-            ]
+    if not filtered_questions:
 
-        st.session_state.interview_question = random.choice(
-            available_questions
+        st.info("No questions available for this category.")
+
+    else:
+
+        question_number = st.number_input(
+            "Question",
+            min_value=1,
+            max_value=len(filtered_questions),
+            value=1,
+            step=1,
         )
 
-        st.session_state.interview_category = selected_category
+        current_question = filtered_questions[
+            question_number - 1
+        ]
 
-    question = st.session_state.interview_question
+        question_text = get_question_text(current_question)
 
-    # -----------------------------
-    # QUESTION CARD
-    # -----------------------------
+        st.markdown(
+            f"""
+            <div class="card">
+                <p class="small">
+                    {safe(get_category(current_question))}
+                </p>
 
-    st.markdown(
-        f"""
-        <div class="card">
-            <p class="small-text">{question["category"]}</p>
-            <h2>{question["question"]}</h2>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+                <h2>
+                    {safe(question_text)}
+                </h2>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    # -----------------------------
-    # ANSWER
-    # -----------------------------
-
-    answer = st.text_area(
-        "Your answer",
-        placeholder=(
-            "Type your interview answer here...\n\n"
-            "Tip: Use a real example when possible."
-        ),
-        height=220,
-        key=f"answer_{id(question)}"
-    )
-
-    # -----------------------------
-    # STAR GUIDE
-    # -----------------------------
-
-    with st.expander("⭐ Need help structuring your answer?"):
-
-        st.markdown("""
-        **S — Situation**  
-        What was happening?
-
-        **T — Task**  
-        What responsibility did you have?
-
-        **A — Action**  
-        What did YOU do?
-
-        **R — Result**  
-        What happened because of your actions?
-        """)
-
-    # -----------------------------
-    # EVALUATE ANSWER
-    # -----------------------------
-
-    if st.button(
-        "🎯 Evaluate My Answer",
-        type="primary",
-        use_container_width=True
-    ):
-
-        if not answer.strip():
-
-            st.warning("Please write an answer before evaluating it.")
-
-        else:
-
-            text = answer.strip()
-            words = text.split()
-            word_count = len(words)
-            lower = text.lower()
-
-            score = 1
-            feedback = []
-            strengths = []
-            improvements = []
-
-            # LENGTH
-            if 40 <= word_count <= 180:
-                score += 1
-                strengths.append(
-                    "Your answer has a suitable amount of detail."
-                )
-            elif word_count < 40:
-                improvements.append(
-                    "Your answer is quite short. Add more detail or a specific example."
-                )
-            else:
-                improvements.append(
-                    "Your answer may be longer than necessary. Keep it focused."
-                )
-
-            # CUSTOMER SERVICE
-            service_words = [
-                "customer",
-                "passenger",
-                "guest",
-                "service",
-                "help",
-                "assist",
-                "support",
-                "satisfied"
-            ]
-
-            if any(word in lower for word in service_words):
-                score += 1
-                strengths.append(
-                    "You demonstrated customer-service awareness."
-                )
-            else:
-                improvements.append(
-                    "Connect your answer more clearly to customer service."
-                )
-
-            # COMMUNICATION
-            communication_words = [
-                "listen",
-                "communicate",
-                "explain",
-                "understand",
-                "conversation",
-                "calm",
-                "respect"
-            ]
-
-            if any(word in lower for word in communication_words):
-                strengths.append(
-                    "You showed useful communication or interpersonal skills."
-                )
-            else:
-                improvements.append(
-                    "Mention how you communicated with the people involved."
-                )
-
-            # TEAMWORK
-            teamwork_words = [
-                "team",
-                "colleague",
-                "together",
-                "cooperate",
-                "support",
-                "collaborate"
-            ]
-
-            if any(word in lower for word in teamwork_words):
-                strengths.append(
-                    "Your answer demonstrates teamwork awareness."
-                )
-            else:
-                improvements.append(
-                    "Where relevant, explain how you worked with others."
-                )
-
-            # STAR SIGNALS
-            star_words = [
-                "situation",
-                "task",
-                "action",
-                "result",
-                "because",
-                "therefore",
-                "eventually"
-            ]
-
-            star_count = sum(
-                1 for word in star_words
-                if word in lower
-            )
-
-            if star_count >= 3:
-                score += 1
-                strengths.append(
-                    "Your answer contains several elements of a structured example."
-                )
-            else:
-                improvements.append(
-                    "Use a clear Situation → Task → Action → Result structure when appropriate."
-                )
-
-            # CAP SCORE
-            score = min(score, 5)
-
-            # EXTRA FEEDBACK
-            if "I" in answer or "my" in lower:
-                strengths.append(
-                    "You focused on your own actions rather than only describing the situation."
-                )
-            else:
-                improvements.append(
-                    "Be specific about what YOU personally did."
-                )
-
-            if score >= 4:
-                overall = "Strong answer"
-            elif score == 3:
-                overall = "Good foundation"
-            else:
-                overall = "Needs improvement"
-
-            st.session_state.interview_score = score
-
-            st.session_state.interview_feedback = {
-                "overall": overall,
-                "strengths": strengths,
-                "improvements": improvements,
-                "word_count": word_count
-            }
-
-    # -----------------------------
-    # FEEDBACK
-    # -----------------------------
-
-    if st.session_state.interview_feedback is not None:
-
-        feedback = st.session_state.interview_feedback
-
-        st.divider()
-
-        st.subheader("📊 Your Feedback")
+        answer = st.text_area(
+            "Your answer",
+            height=220,
+            placeholder=(
+                "Type your answer here. "
+                "For experience-based questions, "
+                "try using the STAR method: "
+                "Situation → Task → Action → Result."
+            ),
+        )
 
         col1, col2 = st.columns(2)
 
         with col1:
-            st.metric(
-                "Score",
-                f"{st.session_state.interview_score}/5"
-            )
+
+            if st.button(
+                "💡 Show Answer Tips",
+                use_container_width=True,
+            ):
+
+                st.info(
+                    """
+                    **Interview tip**
+
+                    Structure your answer clearly.
+
+                    **Situation** — What was happening?
+
+                    **Task** — What were you responsible for?
+
+                    **Action** — What did you personally do?
+
+                    **Result** — What happened afterwards?
+
+                    Keep your answer positive, specific and
+                    focused on customer service, teamwork,
+                    communication and safety.
+                    """
+                )
 
         with col2:
-            st.metric(
-                "Words",
-                feedback["word_count"]
-            )
+
+            if st.button(
+                "📝 Check My Answer",
+                use_container_width=True,
+            ):
+
+                if not answer.strip():
+
+                    st.warning(
+                        "Please write an answer first."
+                    )
+
+                else:
+
+                    answer_length = len(
+                        answer.strip().split()
+                    )
+
+                    feedback = []
+
+                    if answer_length < 30:
+
+                        feedback.append(
+                            "Your answer is quite short. "
+                            "Add a specific example."
+                        )
+
+                    elif answer_length <= 120:
+
+                        feedback.append(
+                            "Your answer has a useful length. "
+                            "Make sure every sentence adds value."
+                        )
+
+                    else:
+
+                        feedback.append(
+                            "Your answer is detailed. "
+                            "Make sure it stays focused."
+                        )
+
+                    lower_answer = answer.lower()
+
+                    keywords = [
+                        "customer",
+                        "team",
+                        "safety",
+                        "communication",
+                        "passenger",
+                        "service",
+                    ]
+
+                    found = [
+                        word
+                        for word in keywords
+                        if word in lower_answer
+                    ]
+
+                    if found:
+
+                        feedback.append(
+                            "Good: your answer includes "
+                            "relevant cabin-crew themes such as "
+                            + ", ".join(found)
+                            + "."
+                        )
+
+                    else:
+
+                        feedback.append(
+                            "Consider connecting your answer "
+                            "to customer service, teamwork, "
+                            "communication or safety where relevant."
+                        )
+
+                    for item in feedback:
+                        st.write("• " + item)
+
+        # ----------------------------------------------------
+        # STAR REMINDER
+        # ----------------------------------------------------
 
         st.markdown(
-            f"### {feedback['overall']}"
+            """
+            <div class="card">
+                <h3>⭐ STAR Method</h3>
+
+                <p>
+                    <strong>S — Situation:</strong>
+                    What was happening?
+                </p>
+
+                <p>
+                    <strong>T — Task:</strong>
+                    What were you responsible for?
+                </p>
+
+                <p>
+                    <strong>A — Action:</strong>
+                    What did you personally do?
+                </p>
+
+                <p>
+                    <strong>R — Result:</strong>
+                    What was the outcome?
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-        if feedback["strengths"]:
 
-            st.markdown("#### ✅ Strengths")
+# ============================================================
+# FOOTER
+# ============================================================
 
-            for item in feedback["strengths"]:
-                st.write(f"✓ {item}")
-
-        if feedback["improvements"]:
-
-            st.markdown("#### 🛠️ Improve")
-
-            for item in feedback["improvements"]:
-                st.write(f"• {item}")
-
-        st.info(
-            f"💡 Interview tip: {question['tip']}"
-        )
-
-        # -----------------------------
-        # NEXT QUESTION
-        # -----------------------------
-
-        if st.button(
-            "➡️ Next Question",
-            use_container_width=True
-        ):
-
-            available_questions = questions
-
-            if st.session_state.interview_category != "All":
-                available_questions = [
-                    q for q in questions
-                    if q["category"] ==
-                    st.session_state.interview_category
-                ]
-
-            current_question = st.session_state.interview_question
-
-            other_questions = [
-                q for q in available_questions
-                if q != current_question
-            ]
-
-            if other_questions:
-                st.session_state.interview_question = random.choice(
-                    other_questions
-                )
-            else:
-                st.session_state.interview_question = random.choice(
-                    available_questions
-                )
-
-            st.session_state.interview_score = None
-            st.session_state.interview_feedback = None
-
-            st.rerun()
+st.markdown(
+    """
+    <div style="
+        text-align:center;
+        padding:35px 0 10px 0;
+        color:#737c8c;
+        font-size:13px;
+    ">
+        ✈️ CabinCrewHub
+        <br>
+        Cabin crew preparation made simpler.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
