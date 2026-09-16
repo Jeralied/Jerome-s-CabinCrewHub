@@ -1,0 +1,152 @@
+[
+  {
+    "category": "General",
+    "question": "Tell me about yourself.",
+    "tip": "Keep your answer professional. Focus on customer service, communication, teamwork, and relevant experience."
+  },
+  {
+    "category": "General",
+    "question": "Why do you want to become cabin crew?",
+    "tip": "Explain your genuine motivation and connect it to service, safety, teamwork, and working with different people."
+  },
+  {
+    "category": "General",
+    "question": "Why should we hire you?",
+    "tip": "Highlight your strongest relevant qualities and support them with real examples."
+  },
+  {
+    "category": "General",
+    "question": "What are your greatest strengths?",
+    "tip": "Choose strengths relevant to cabin crew, such as communication, patience, teamwork, adaptability, or customer service."
+  },
+  {
+    "category": "General",
+    "question": "What is one weakness you are working on?",
+    "tip": "Choose a genuine but manageable weakness and explain what you are doing to improve it."
+  },
+  {
+    "category": "Customer Service",
+    "question": "Tell me about a time you dealt with a difficult customer.",
+    "tip": "Use a real example. Explain the situation, what you did, and the result."
+  },
+  {
+    "category": "Customer Service",
+    "question": "What does excellent customer service mean to you?",
+    "tip": "Talk about understanding needs, professionalism, empathy, communication, and creating a positive experience."
+  },
+  {
+    "category": "Customer Service",
+    "question": "How would you handle an angry passenger?",
+    "tip": "Stay calm, listen carefully, show empathy, explain available solutions, and follow company procedures."
+  },
+  {
+    "category": "Customer Service",
+    "question": "What would you do if a passenger complained about their seat?",
+    "tip": "Listen without arguing, acknowledge the concern, check what options are available, and follow cabin procedures."
+  },
+  {
+    "category": "Customer Service",
+    "question": "How would you deal with a passenger who is being rude to you?",
+    "tip": "Remain professional and calm. Do not respond emotionally or personally."
+  },
+  {
+    "category": "Safety",
+    "question": "Why is safety important for cabin crew?",
+    "tip": "Safety is a fundamental cabin crew responsibility. Mention procedures, awareness, communication, and passenger protection."
+  },
+  {
+    "category": "Safety",
+    "question": "What would you do if you noticed something unusual during a flight?",
+    "tip": "Explain that you would remain alert, assess according to your training, and communicate with the appropriate crew member."
+  },
+  {
+    "category": "Safety",
+    "question": "How would you react during an emergency?",
+    "tip": "Stay calm, follow training and procedures, communicate clearly, and assist passengers as instructed."
+  },
+  {
+    "category": "Safety",
+    "question": "What would you do if a passenger refused to follow a safety instruction?",
+    "tip": "Remain calm and professional, explain the importance of the instruction, and involve the appropriate crew member if necessary."
+  },
+  {
+    "category": "Teamwork",
+    "question": "Tell me about a time you worked successfully as part of a team.",
+    "tip": "Give a specific example and explain your role, your contribution, and the outcome."
+  },
+  {
+    "category": "Teamwork",
+    "question": "What would you do if you disagreed with another crew member?",
+    "tip": "Remain respectful, communicate privately and professionally, and keep safety and teamwork as priorities."
+  },
+  {
+    "category": "Teamwork",
+    "question": "Why is teamwork important in cabin crew?",
+    "tip": "Discuss coordination, communication, safety, efficiency, and consistent passenger service."
+  },
+  {
+    "category": "Situational",
+    "question": "A passenger becomes nervous during turbulence. What would you do?",
+    "tip": "Remain calm, reassure the passenger appropriately, follow safety procedures, and communicate clearly."
+  },
+  {
+    "category": "Situational",
+    "question": "Two passengers begin arguing. How would you handle the situation?",
+    "tip": "Stay calm, assess the situation, attempt to de-escalate professionally, and involve other crew when required."
+  },
+  {
+    "category": "Situational",
+    "question": "A passenger asks you something you do not know. What would you do?",
+    "tip": "Do not guess. Explain that you will find the correct information and consult the appropriate source or crew member."
+  },
+  {
+    "category": "Situational",
+    "question": "You are serving passengers and notice that one passenger needs assistance. What would you do?",
+    "tip": "Prioritize appropriately while maintaining awareness of the rest of the cabin and coordinating with colleagues."
+  },
+  {
+    "category": "Airline",
+    "question": "Why do you want to work for Emirates?",
+    "tip": "Research the airline beforehand and explain specific reasons connected to its service, international environment, and values."
+  },
+  {
+    "category": "Airline",
+    "question": "What do you know about Qatar Airways?",
+    "tip": "Demonstrate that you researched the airline and understand its international operation and customer-service focus."
+  },
+  {
+    "category": "Airline",
+    "question": "Why would you like to work for Etihad Airways?",
+    "tip": "Give specific reasons based on your research rather than giving a generic answer."
+  },
+  {
+    "category": "Personal",
+    "question": "How do you handle working under pressure?",
+    "tip": "Give a real example if possible and explain how you stay organized, calm, and focused."
+  },
+  {
+    "category": "Personal",
+    "question": "How do you adapt to working with people from different cultures?",
+    "tip": "Discuss respect, open-mindedness, communication, and willingness to learn."
+  },
+  {
+    "category": "Personal",
+    "question": "Are you comfortable working irregular hours and weekends?",
+    "tip": "Cabin crew schedules can vary. Explain your ability to remain flexible and professional."
+  },
+  {
+    "category": "Experience",
+    "question": "Tell me about a time you solved a customer's problem.",
+    "tip": "Use a real work example and clearly explain the problem, your action, and the result."
+  },
+  {
+    "category": "Experience",
+    "question": "Tell me about a time you received negative feedback.",
+    "tip": "Show that you can accept feedback professionally and use it to improve."
+  },
+  {
+    "category": "Experience",
+    "question": "Tell me about a time you had to learn something quickly.",
+    "tip": "Explain what you had to learn, how you approached it, and what happened afterward."
+  }
+]
