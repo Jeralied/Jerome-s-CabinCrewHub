@@ -696,21 +696,365 @@ elif page == "🎤 Interview Trainer":
     st.subheader("🎤 Cabin Crew Interview Trainer")
 
     st.write(
-        "Practice cabin crew interview questions and receive "
-        "structured feedback on your answers."
+        "Practice realistic cabin crew interview questions and "
+        "receive structured feedback on your answer."
     )
 
-    st.info(
-        "🚧 Interview Trainer is the next feature we will build."
+    # -----------------------------
+    # LOAD QUESTIONS
+    # -----------------------------
+
+    QUESTION_FILE = BASE_DIR / "questions.json"
+
+    try:
+        with open(QUESTION_FILE, "r", encoding="utf-8") as file:
+            questions = json.load(file)
+    except FileNotFoundError:
+        st.error("questions.json was not found.")
+        st.stop()
+    except json.JSONDecodeError:
+        st.error("questions.json contains invalid JSON.")
+        st.stop()
+
+    # -----------------------------
+    # SESSION STATE
+    # -----------------------------
+
+    if "interview_question" not in st.session_state:
+        st.session_state.interview_question = None
+
+    if "interview_score" not in st.session_state:
+        st.session_state.interview_score = None
+
+    if "interview_feedback" not in st.session_state:
+        st.session_state.interview_feedback = None
+
+    if "interview_category" not in st.session_state:
+        st.session_state.interview_category = "All"
+
+    # -----------------------------
+    # CATEGORY
+    # -----------------------------
+
+    categories = ["All"] + sorted(
+        list(set(q["category"] for q in questions))
     )
 
+    selected_category = st.selectbox(
+        "Choose interview category",
+        categories
+    )
 
-# ============================================================
-# FOOTER
-# ============================================================
+    # -----------------------------
+    # NEW QUESTION
+    # -----------------------------
 
-st.divider()
+    if st.session_state.interview_question is None:
 
-st.caption(
-    "✈️ CabinCrewHub • Cabin crew preparation made simple."
-)
+        available_questions = questions
+
+        if selected_category != "All":
+            available_questions = [
+                q for q in questions
+                if q["category"] == selected_category
+            ]
+
+        st.session_state.interview_question = random.choice(
+            available_questions
+        )
+
+        st.session_state.interview_category = selected_category
+
+    question = st.session_state.interview_question
+
+    # -----------------------------
+    # QUESTION CARD
+    # -----------------------------
+
+    st.markdown(
+        f"""
+        <div class="card">
+            <p class="small-text">{question["category"]}</p>
+            <h2>{question["question"]}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # -----------------------------
+    # ANSWER
+    # -----------------------------
+
+    answer = st.text_area(
+        "Your answer",
+        placeholder=(
+            "Type your interview answer here...\n\n"
+            "Tip: Use a real example when possible."
+        ),
+        height=220,
+        key=f"answer_{id(question)}"
+    )
+
+    # -----------------------------
+    # STAR GUIDE
+    # -----------------------------
+
+    with st.expander("⭐ Need help structuring your answer?"):
+
+        st.markdown("""
+        **S — Situation**  
+        What was happening?
+
+        **T — Task**  
+        What responsibility did you have?
+
+        **A — Action**  
+        What did YOU do?
+
+        **R — Result**  
+        What happened because of your actions?
+        """)
+
+    # -----------------------------
+    # EVALUATE ANSWER
+    # -----------------------------
+
+    if st.button(
+        "🎯 Evaluate My Answer",
+        type="primary",
+        use_container_width=True
+    ):
+
+        if not answer.strip():
+
+            st.warning("Please write an answer before evaluating it.")
+
+        else:
+
+            text = answer.strip()
+            words = text.split()
+            word_count = len(words)
+            lower = text.lower()
+
+            score = 1
+            feedback = []
+            strengths = []
+            improvements = []
+
+            # LENGTH
+            if 40 <= word_count <= 180:
+                score += 1
+                strengths.append(
+                    "Your answer has a suitable amount of detail."
+                )
+            elif word_count < 40:
+                improvements.append(
+                    "Your answer is quite short. Add more detail or a specific example."
+                )
+            else:
+                improvements.append(
+                    "Your answer may be longer than necessary. Keep it focused."
+                )
+
+            # CUSTOMER SERVICE
+            service_words = [
+                "customer",
+                "passenger",
+                "guest",
+                "service",
+                "help",
+                "assist",
+                "support",
+                "satisfied"
+            ]
+
+            if any(word in lower for word in service_words):
+                score += 1
+                strengths.append(
+                    "You demonstrated customer-service awareness."
+                )
+            else:
+                improvements.append(
+                    "Connect your answer more clearly to customer service."
+                )
+
+            # COMMUNICATION
+            communication_words = [
+                "listen",
+                "communicate",
+                "explain",
+                "understand",
+                "conversation",
+                "calm",
+                "respect"
+            ]
+
+            if any(word in lower for word in communication_words):
+                strengths.append(
+                    "You showed useful communication or interpersonal skills."
+                )
+            else:
+                improvements.append(
+                    "Mention how you communicated with the people involved."
+                )
+
+            # TEAMWORK
+            teamwork_words = [
+                "team",
+                "colleague",
+                "together",
+                "cooperate",
+                "support",
+                "collaborate"
+            ]
+
+            if any(word in lower for word in teamwork_words):
+                strengths.append(
+                    "Your answer demonstrates teamwork awareness."
+                )
+            else:
+                improvements.append(
+                    "Where relevant, explain how you worked with others."
+                )
+
+            # STAR SIGNALS
+            star_words = [
+                "situation",
+                "task",
+                "action",
+                "result",
+                "because",
+                "therefore",
+                "eventually"
+            ]
+
+            star_count = sum(
+                1 for word in star_words
+                if word in lower
+            )
+
+            if star_count >= 3:
+                score += 1
+                strengths.append(
+                    "Your answer contains several elements of a structured example."
+                )
+            else:
+                improvements.append(
+                    "Use a clear Situation → Task → Action → Result structure when appropriate."
+                )
+
+            # CAP SCORE
+            score = min(score, 5)
+
+            # EXTRA FEEDBACK
+            if "I" in answer or "my" in lower:
+                strengths.append(
+                    "You focused on your own actions rather than only describing the situation."
+                )
+            else:
+                improvements.append(
+                    "Be specific about what YOU personally did."
+                )
+
+            if score >= 4:
+                overall = "Strong answer"
+            elif score == 3:
+                overall = "Good foundation"
+            else:
+                overall = "Needs improvement"
+
+            st.session_state.interview_score = score
+
+            st.session_state.interview_feedback = {
+                "overall": overall,
+                "strengths": strengths,
+                "improvements": improvements,
+                "word_count": word_count
+            }
+
+    # -----------------------------
+    # FEEDBACK
+    # -----------------------------
+
+    if st.session_state.interview_feedback is not None:
+
+        feedback = st.session_state.interview_feedback
+
+        st.divider()
+
+        st.subheader("📊 Your Feedback")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric(
+                "Score",
+                f"{st.session_state.interview_score}/5"
+            )
+
+        with col2:
+            st.metric(
+                "Words",
+                feedback["word_count"]
+            )
+
+        st.markdown(
+            f"### {feedback['overall']}"
+        )
+
+        if feedback["strengths"]:
+
+            st.markdown("#### ✅ Strengths")
+
+            for item in feedback["strengths"]:
+                st.write(f"✓ {item}")
+
+        if feedback["improvements"]:
+
+            st.markdown("#### 🛠️ Improve")
+
+            for item in feedback["improvements"]:
+                st.write(f"• {item}")
+
+        st.info(
+            f"💡 Interview tip: {question['tip']}"
+        )
+
+        # -----------------------------
+        # NEXT QUESTION
+        # -----------------------------
+
+        if st.button(
+            "➡️ Next Question",
+            use_container_width=True
+        ):
+
+            available_questions = questions
+
+            if st.session_state.interview_category != "All":
+                available_questions = [
+                    q for q in questions
+                    if q["category"] ==
+                    st.session_state.interview_category
+                ]
+
+            current_question = st.session_state.interview_question
+
+            other_questions = [
+                q for q in available_questions
+                if q != current_question
+            ]
+
+            if other_questions:
+                st.session_state.interview_question = random.choice(
+                    other_questions
+                )
+            else:
+                st.session_state.interview_question = random.choice(
+                    available_questions
+                )
+
+            st.session_state.interview_score = None
+            st.session_state.interview_feedback = None
+
+            st.rerun()
