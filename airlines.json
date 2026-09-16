@@ -1,1 +1,40 @@
+{
+  "Emirates": {
+    "description": "Cabin Crew recruitment requirements for Emirates.",
+    "min_age": 21,
+    "min_height": 160,
+    "min_reach": 212,
+    "english_required": true,
+    "secondary_education_required": true,
+    "experience_required": true,
+    "minimum_experience_years": 1,
+    "swimming_required": false,
+    "no_visible_tattoos": true
+  },
 
+  "Qatar Airways": {
+    "description": "Cabin Crew recruitment requirements for Qatar Airways.",
+    "min_age": 21,
+    "min_height": 0,
+    "min_reach": 212,
+    "english_required": true,
+    "secondary_education_required": true,
+    "experience_required": false,
+    "minimum_experience_years": 0,
+    "swimming_required": false,
+    "no_visible_tattoos": false
+  },
+
+  "Etihad Airways": {
+    "description": "Cabin Crew recruitment requirements for Etihad Airways.",
+    "min_age": 21,
+    "min_height": 163,
+    "min_reach": 0,
+    "english_required": true,
+    "secondary_education_required": true,
+    "experience_required": false,
+    "minimum_experience_years": 0,
+    "swimming_required": false,
+    "no_visible_tattoos": true
+  }
+}
