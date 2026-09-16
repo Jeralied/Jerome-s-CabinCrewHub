@@ -2,114 +2,134 @@ import streamlit as st
 import json
 from pathlib import Path
 
-# -----------------------------
+# ============================================================
 # PAGE CONFIG
-# -----------------------------
+# ============================================================
+
 st.set_page_config(
     page_title="CabinCrewHub",
     page_icon="✈️",
     layout="wide"
 )
 
-# -----------------------------
+# ============================================================
 # CUSTOM CSS
-# -----------------------------
+# ============================================================
+
 st.markdown("""
 <style>
-    .main {
-        background-color: #f7f9fc;
-    }
 
-    .hero {
-        padding: 35px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #0b1f3a, #173f67);
-        color: white;
-        margin-bottom: 25px;
-    }
+.main {
+    background-color: #f7f9fc;
+}
 
-    .hero h1 {
-        font-size: 42px;
-        margin-bottom: 8px;
-    }
+.hero {
+    padding: 40px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #081b33, #174b78);
+    color: white;
+    margin-bottom: 30px;
+}
 
-    .hero p {
-        font-size: 18px;
-        opacity: 0.9;
-    }
+.hero h1 {
+    font-size: 44px;
+    margin-bottom: 8px;
+}
 
-    .card {
-        padding: 25px;
-        border-radius: 16px;
-        background: white;
-        border: 1px solid #e5e9f0;
-        margin-bottom: 20px;
-    }
+.hero p {
+    font-size: 18px;
+    opacity: 0.9;
+}
 
-    .result-box {
-        padding: 18px;
-        border-radius: 12px;
-        margin: 10px 0;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-    }
+.card {
+    padding: 25px;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid #e5e9f0;
+    margin-bottom: 20px;
+}
 
-    .check {
-        font-size: 20px;
-        font-weight: 600;
-    }
+.result-box {
+    padding: 18px;
+    border-radius: 12px;
+    margin: 10px 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+}
 
-    .small-text {
-        color: #64748b;
-        font-size: 14px;
-    }
+.check {
+    font-size: 19px;
+    font-weight: 600;
+}
 
-    div.stButton > button {
-        border-radius: 10px;
-        font-weight: 600;
-    }
+.small-text {
+    color: #64748b;
+    font-size: 14px;
+}
+
+div.stButton > button {
+    border-radius: 10px;
+    font-weight: 600;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-
-# -----------------------------
+# ============================================================
 # LOAD AIRLINE DATA
-# -----------------------------
+# ============================================================
+
 BASE_DIR = Path(__file__).resolve().parent
 AIRLINE_FILE = BASE_DIR / "airlines.json"
 
 
 def load_airlines():
+
     try:
+
         with open(AIRLINE_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
+
     except FileNotFoundError:
-        st.error("airlines.json was not found.")
+
+        st.error(
+            "airlines.json was not found. "
+            "Make sure the file is in the same GitHub repository."
+        )
+
         return {}
+
     except json.JSONDecodeError:
-        st.error("airlines.json contains invalid JSON.")
+
+        st.error(
+            "airlines.json contains invalid JSON."
+        )
+
         return {}
 
 
 airlines = load_airlines()
 
+# ============================================================
+# HERO
+# ============================================================
 
-# -----------------------------
-# HEADER
-# -----------------------------
 st.markdown("""
 <div class="hero">
+
     <h1>✈️ CabinCrewHub</h1>
+
     <p>
-        Check cabin crew requirements and prepare for your airline application.
+        Your cabin crew preparation and airline application companion.
     </p>
+
 </div>
 """, unsafe_allow_html=True)
 
+# ============================================================
+# SIDEBAR
+# ============================================================
 
-# -----------------------------
-# NAVIGATION
-# -----------------------------
 st.sidebar.title("✈️ CabinCrewHub")
 
 page = st.sidebar.radio(
@@ -120,7 +140,6 @@ page = st.sidebar.radio(
     ]
 )
 
-
 # ============================================================
 # AIRLINE CHECKER
 # ============================================================
@@ -130,19 +149,23 @@ if page == "🔎 Airline Checker":
     st.subheader("🔎 Airline Application Checker")
 
     st.write(
-        "Enter your information below and compare your profile "
-        "with the published cabin crew requirements."
+        "Enter your information to compare your profile "
+        "with the requirements currently stored for the selected airline."
     )
 
     if not airlines:
-        st.warning("No airline information is available yet.")
+
+        st.warning("No airline information is available.")
+
         st.stop()
 
-    airline_names = list(airlines.keys())
+    # --------------------------------------------------------
+    # SELECT AIRLINE
+    # --------------------------------------------------------
 
     selected_airline = st.selectbox(
         "Select an airline",
-        airline_names
+        list(airlines.keys())
     )
 
     airline = airlines[selected_airline]
@@ -150,18 +173,28 @@ if page == "🔎 Airline Checker":
     st.markdown(
         f"""
         <div class="card">
+
             <h2>✈️ {selected_airline}</h2>
-            <p>{airline.get("description", "")}</p>
+
+            <p>
+                {airline.get("description", "")}
+            </p>
+
         </div>
         """,
         unsafe_allow_html=True
     )
+
+    # --------------------------------------------------------
+    # USER PROFILE
+    # --------------------------------------------------------
 
     st.subheader("👤 Your Profile")
 
     col1, col2 = st.columns(2)
 
     with col1:
+
         age = st.number_input(
             "Age",
             min_value=16,
@@ -184,13 +217,19 @@ if page == "🔎 Airline Checker":
         )
 
     with col2:
+
         english = st.selectbox(
             "English ability",
-            ["Fluent", "Good", "Basic", "None"]
+            [
+                "Fluent",
+                "Good",
+                "Basic",
+                "None"
+            ]
         )
 
         education = st.selectbox(
-            "Education",
+            "Highest education",
             [
                 "Below secondary school",
                 "Secondary school / Grade 12",
@@ -210,15 +249,27 @@ if page == "🔎 Airline Checker":
 
     swimming = st.selectbox(
         "Can you swim?",
-        ["Yes", "No", "Not sure"]
+        [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
     )
 
     tattoos = st.selectbox(
         "Visible tattoos while wearing the airline uniform?",
-        ["No", "Yes", "Not sure"]
+        [
+            "No",
+            "Yes",
+            "Not sure"
+        ]
     )
 
     st.divider()
+
+    # --------------------------------------------------------
+    # CHECK BUTTON
+    # --------------------------------------------------------
 
     if st.button(
         "🔍 Check My Requirements",
@@ -228,59 +279,160 @@ if page == "🔎 Airline Checker":
 
         results = []
 
+        # ====================================================
         # AGE
+        # ====================================================
+
         if "min_age" in airline:
+
             if age >= airline["min_age"]:
+
                 results.append(
-                    ("✓", "Age", "Meets requirement", "success")
-                )
-            else:
-                results.append(
-                    ("✗", "Age", f"Minimum age is {airline['min_age']}", "error")
+                    (
+                        "✓",
+                        "Age",
+                        f"You meet the minimum age of "
+                        f"{airline['min_age']}.",
+                        "success"
+                    )
                 )
 
+            else:
+
+                results.append(
+                    (
+                        "✗",
+                        "Age",
+                        f"Minimum age: {airline['min_age']}.",
+                        "error"
+                    )
+                )
+
+        # ====================================================
         # HEIGHT
+        # ====================================================
+
         if "min_height" in airline:
-            if height >= airline["min_height"]:
-                results.append(
-                    ("✓", "Height", "Meets requirement", "success")
-                )
+
+            if airline["min_height"] > 0:
+
+                if height >= airline["min_height"]:
+
+                    results.append(
+                        (
+                            "✓",
+                            "Height",
+                            f"You meet the minimum height of "
+                            f"{airline['min_height']} cm.",
+                            "success"
+                        )
+                    )
+
+                else:
+
+                    results.append(
+                        (
+                            "✗",
+                            "Height",
+                            f"Minimum height: "
+                            f"{airline['min_height']} cm.",
+                            "error"
+                        )
+                    )
+
             else:
+
                 results.append(
-                    ("✗", "Height",
-                     f"Minimum height is {airline['min_height']} cm",
-                     "error")
+                    (
+                        "⚠",
+                        "Height",
+                        "No height requirement stored. "
+                        "Verify the current airline vacancy.",
+                        "warning"
+                    )
                 )
 
-        # REACH
+        # ====================================================
+        # ARM REACH
+        # ====================================================
+
         if "min_reach" in airline:
-            if reach >= airline["min_reach"]:
-                results.append(
-                    ("✓", "Arm Reach", "Meets requirement", "success")
-                )
+
+            if airline["min_reach"] > 0:
+
+                if reach >= airline["min_reach"]:
+
+                    results.append(
+                        (
+                            "✓",
+                            "Arm Reach",
+                            f"You meet the minimum reach of "
+                            f"{airline['min_reach']} cm.",
+                            "success"
+                        )
+                    )
+
+                else:
+
+                    results.append(
+                        (
+                            "✗",
+                            "Arm Reach",
+                            f"Minimum reach: "
+                            f"{airline['min_reach']} cm.",
+                            "error"
+                        )
+                    )
+
             else:
+
                 results.append(
-                    ("✗", "Arm Reach",
-                     f"Minimum reach is {airline['min_reach']} cm",
-                     "error")
+                    (
+                        "⚠",
+                        "Arm Reach",
+                        "No arm-reach requirement stored. "
+                        "Verify the current airline vacancy.",
+                        "warning"
+                    )
                 )
 
+        # ====================================================
         # ENGLISH
+        # ====================================================
+
         if airline.get("english_required", False):
 
             if english == "Fluent":
+
                 results.append(
-                    ("✓", "English", "Fluent English selected", "success")
-                )
-            else:
-                results.append(
-                    ("⚠", "English",
-                     "Fluent English is required — verify your level",
-                     "warning")
+                    (
+                        "✓",
+                        "English",
+                        "Fluent English selected.",
+                        "success"
+                    )
                 )
 
+            else:
+
+                results.append(
+                    (
+                        "⚠",
+                        "English",
+                        "The airline requires English proficiency. "
+                        "Verify that your level meets the vacancy requirement.",
+                        "warning"
+                    )
+                )
+
+        # ====================================================
         # EDUCATION
-        if airline.get("secondary_education_required", False):
+        # ====================================================
+
+        if airline.get(
+            "secondary_education_required",
+            False
+        ):
 
             valid_education = [
                 "Secondary school / Grade 12",
@@ -290,122 +442,248 @@ if page == "🔎 Airline Checker":
             ]
 
             if education in valid_education:
+
                 results.append(
-                    ("✓", "Education",
-                     "Secondary education or higher selected",
-                     "success")
-                )
-            else:
-                results.append(
-                    ("✗", "Education",
-                     "Secondary education is required",
-                     "error")
+                    (
+                        "✓",
+                        "Education",
+                        "Secondary education or higher selected.",
+                        "success"
+                    )
                 )
 
+            else:
+
+                results.append(
+                    (
+                        "✗",
+                        "Education",
+                        "Secondary education is required.",
+                        "error"
+                    )
+                )
+
+        # ====================================================
         # EXPERIENCE
-        if airline.get("experience_required", False):
+        # ====================================================
+
+        if airline.get(
+            "experience_required",
+            False
+        ):
 
             required_experience = airline.get(
-                "minimum_experience_years", 1
+                "minimum_experience_years",
+                1
             )
 
             if experience >= required_experience:
+
                 results.append(
-                    ("✓", "Experience",
-                     f"{experience:g} years entered",
-                     "success")
-                )
-            else:
-                results.append(
-                    ("✗", "Experience",
-                     f"At least {required_experience} year(s) required",
-                     "error")
+                    (
+                        "✓",
+                        "Experience",
+                        f"You entered {experience:g} year(s) "
+                        f"of relevant experience.",
+                        "success"
+                    )
                 )
 
+            else:
+
+                results.append(
+                    (
+                        "✗",
+                        "Experience",
+                        f"At least {required_experience} "
+                        f"year(s) required.",
+                        "error"
+                    )
+                )
+
+        else:
+
+            results.append(
+                (
+                    "⚠",
+                    "Experience",
+                    "No minimum experience requirement "
+                    "is stored for this airline.",
+                    "warning"
+                )
+            )
+
+        # ====================================================
         # SWIMMING
-        if airline.get("swimming_required", False):
+        # ====================================================
+
+        if airline.get(
+            "swimming_required",
+            False
+        ):
 
             if swimming == "Yes":
+
                 results.append(
-                    ("✓", "Swimming",
-                     "Swimming ability confirmed",
-                     "success")
-                )
-            elif swimming == "No":
-                results.append(
-                    ("✗", "Swimming",
-                     "Swimming requirement not met",
-                     "error")
-                )
-            else:
-                results.append(
-                    ("⚠", "Swimming",
-                     "Verify swimming requirement",
-                     "warning")
+                    (
+                        "✓",
+                        "Swimming",
+                        "Swimming ability confirmed.",
+                        "success"
+                    )
                 )
 
-        # TATTOOS
-        if airline.get("no_visible_tattoos", False):
+            elif swimming == "No":
+
+                results.append(
+                    (
+                        "✗",
+                        "Swimming",
+                        "Swimming requirement not met.",
+                        "error"
+                    )
+                )
+
+            else:
+
+                results.append(
+                    (
+                        "⚠",
+                        "Swimming",
+                        "Verify the airline's swimming requirement.",
+                        "warning"
+                    )
+                )
+
+        # ====================================================
+        # VISIBLE TATTOOS
+        # ====================================================
+
+        if airline.get(
+            "no_visible_tattoos",
+            False
+        ):
 
             if tattoos == "No":
+
                 results.append(
-                    ("✓", "Visible Tattoos",
-                     "No visible tattoos selected",
-                     "success")
+                    (
+                        "✓",
+                        "Visible Tattoos",
+                        "No visible tattoos selected.",
+                        "success"
+                    )
                 )
+
             elif tattoos == "Yes":
+
                 results.append(
-                    ("✗", "Visible Tattoos",
-                     "Visible tattoos may conflict with this requirement",
-                     "error")
+                    (
+                        "✗",
+                        "Visible Tattoos",
+                        "Visible tattoos may conflict with "
+                        "the airline's stated requirement.",
+                        "error"
+                    )
                 )
+
             else:
+
                 results.append(
-                    ("⚠", "Visible Tattoos",
-                     "Verify the airline's uniform policy",
-                     "warning")
+                    (
+                        "⚠",
+                        "Visible Tattoos",
+                        "Verify the airline's current "
+                        "uniform/tattoo policy.",
+                        "warning"
+                    )
                 )
 
-        # -----------------------------
-        # RESULTS
-        # -----------------------------
+        # ====================================================
+        # DISPLAY RESULTS
+        # ====================================================
 
-        st.subheader("📋 Requirement Check")
+        st.subheader("📋 Requirement Results")
 
         for icon, requirement, message, status in results:
 
             st.markdown(
                 f"""
                 <div class="result-box">
-                    <span class="check">{icon} {requirement}</span>
-                    <br>
-                    <span class="small-text">{message}</span>
+
+                    <div class="check">
+                        {icon} {requirement}
+                    </div>
+
+                    <div class="small-text">
+                        {message}
+                    </div>
+
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        passed = sum(1 for r in results if r[3] == "success")
-        failed = sum(1 for r in results if r[3] == "error")
-        warnings = sum(1 for r in results if r[3] == "warning")
+        # ====================================================
+        # SUMMARY
+        # ====================================================
+
+        passed = sum(
+            1 for result in results
+            if result[3] == "success"
+        )
+
+        failed = sum(
+            1 for result in results
+            if result[3] == "error"
+        )
+
+        warnings = sum(
+            1 for result in results
+            if result[3] == "warning"
+        )
 
         st.divider()
 
-        c1, c2, c3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
 
-        with c1:
-            st.metric("✓ Meets", passed)
+        with col1:
+            st.metric(
+                "✓ Meets",
+                passed
+            )
 
-        with c2:
-            st.metric("⚠ Verify", warnings)
+        with col2:
+            st.metric(
+                "⚠ Verify",
+                warnings
+            )
 
-        with c3:
-            st.metric("✗ Does not meet", failed)
+        with col3:
+            st.metric(
+                "✗ Does Not Meet",
+                failed
+            )
+
+        if failed == 0:
+
+            st.success(
+                "No stored requirement was marked as not met. "
+                "Review all verification warnings and the airline's "
+                "official vacancy before applying."
+            )
+
+        else:
+
+            st.error(
+                "At least one stored requirement was not met."
+            )
 
         st.info(
-            "This tool is a requirement checklist, not a guarantee of "
-            "employment or selection. Always verify the current official "
-            "airline vacancy before applying."
+            "Important: This is a requirement checklist, not an "
+            "employment or selection prediction. Airline requirements "
+            "can change, so applicants should verify the current "
+            "official vacancy."
         )
 
 
@@ -418,22 +696,21 @@ elif page == "🎤 Interview Trainer":
     st.subheader("🎤 Cabin Crew Interview Trainer")
 
     st.write(
-        "This section will contain cabin crew interview questions, "
-        "answer evaluation and feedback."
+        "Practice cabin crew interview questions and receive "
+        "structured feedback on your answers."
     )
 
     st.info(
-        "🚧 Interview Trainer is coming next. "
-        "We are building the Airline Checker first."
+        "🚧 Interview Trainer is the next feature we will build."
     )
 
 
-# -----------------------------
+# ============================================================
 # FOOTER
-# -----------------------------
+# ============================================================
 
 st.divider()
 
 st.caption(
-    "✈️ CabinCrewHub • Built to help aspiring cabin crew applicants prepare."
+    "✈️ CabinCrewHub • Cabin crew preparation made simple."
 )
